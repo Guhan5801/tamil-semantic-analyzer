@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧠 Tamil Semantic & Sentiment Analysis Dashboard
 
 ## 🚀 **Modern Tamil Text Analysis System**
@@ -176,3 +177,6 @@ For issues or questions:
 ---
 
 **🎯 Ready to analyze Tamil text with precision!** Launch the dashboard and experience modern semantic analysis. 🚀✨
+=======
+# tamil-semantic-analyzer
+>>>>>>> 698a1d415a486cc899b7b9e55ea8368557fa35fc
