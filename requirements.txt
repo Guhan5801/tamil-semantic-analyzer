@@ -2,52 +2,39 @@
 # Dependencies for converting Tamil handwritten images to digital text with cultural context
 
 # Core OCR and Image Processing
-opencv-python>=4.8.0        # Image preprocessing and enhancement
-easyocr>=1.7.0              # Primary OCR engine for Tamil text
-pytesseract>=0.3.10         # Secondary OCR engine
-Pillow>=10.0.0              # Image manipulation and format handling
-numpy>=1.24.0               # Numerical operations for image arrays
+opencv-python>=4.8.0,<5.0.0
+easyocr>=1.7.0,<2.0.0
+pytesseract>=0.3.10,<1.0.0
+Pillow>=10.0.0,<11.0.0
+numpy>=1.24.0,<2.0.0
 
 # Enhancement integration
-google-generativeai>=0.3.0  # Gemini integration for enhanced cultural analysis
-requests>=2.28.0            # HTTP requests for API calls
+google-generativeai>=0.3.0,<1.0.0
+requests>=2.28.0,<3.0.0
 
 # Image Enhancement and Computer Vision  
-scikit-image>=0.20.0        # Advanced image processing algorithms
-scipy>=1.10.0               # Mathematical operations for image enhancement
-matplotlib>=3.7.0           # Image visualization and debugging
+scikit-image>=0.20.0,<1.0.0
+scipy>=1.10.0,<2.0.0
+matplotlib>=3.7.0,<4.0.0
 
 # Database and Text Processing
-sqlite3                     # Built-in Python SQLite support (no pip install needed)
-difflib                     # Built-in text similarity (no pip install needed)
-fuzzywuzzy>=0.18.0         # Fuzzy string matching for verse comparison
-python-Levenshtein>=0.20.0  # Fast string distance calculations
+fuzzywuzzy>=0.18.0,<1.0.0
+python-Levenshtein>=0.20.0,<1.0.0
 
 # Web Interface and API
-flask>=2.3.0               # Web framework for user interface
-flask-cors>=4.0.0          # Cross-origin resource sharing
-werkzeug>=2.3.0            # WSGI utilities
-jinja2>=3.1.0              # Template engine
-
-# File Handling and Utilities
-pathlib                    # Built-in path handling (no pip install needed)
-base64                     # Built-in encoding (no pip install needed)
-io                         # Built-in I/O operations (no pip install needed)
-json                       # Built-in JSON handling (no pip install needed)
-logging                    # Built-in logging (no pip install needed)
-time                       # Built-in time operations (no pip install needed)
-os                         # Built-in OS interface (no pip install needed)
-re                         # Built-in regular expressions (no pip install needed)
-typing                     # Built-in type hints (no pip install needed)
+flask>=2.3.0,<4.0.0
+flask-cors>=4.0.0,<5.0.0
+werkzeug>=2.3.0,<4.0.0
+jinja2>=3.1.0,<4.0.0
 
 # Development and Testing
-pytest>=7.0.0             # Testing framework
-pytest-cov>=4.0.0         # Test coverage reporting
-black>=23.0.0              # Code formatting
-flake8>=6.0.0              # Code linting
+pytest>=7.0.0,<8.0.0
+pytest-cov>=4.0.0,<5.0.0
+black>=23.0.0,<25.0.0
+flake8>=6.0.0,<8.0.0
 
 # Tamil Language Support
-indic-transliteration>=2.3.0  # Tamil script handling
+indic-transliteration>=2.3.0,<3.0.0
 tamil>=1.0.0               # Tamil language utilities (if available)
 
 # Performance and Monitoring
