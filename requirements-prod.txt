@@ -1,0 +1,19 @@
+# Tamil Semantic Sentiment Analyzer - Production Requirements
+# Core Web Framework
+Flask==3.0.0
+gunicorn==21.2.0
+
+# AI and NLP
+google-generativeai>=0.4.0
+requests>=2.31.0
+
+# Image Processing (Optional - for future OCR features)
+Pillow>=10.1.0
+opencv-python>=4.8.1.78
+numpy>=1.24.4
+
+# Development and Environment
+python-dotenv>=1.0.0
+
+# Production Server
+Werkzeug>=3.0.0
