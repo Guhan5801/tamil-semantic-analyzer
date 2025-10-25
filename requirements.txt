@@ -35,21 +35,3 @@ flake8>=6.0.0,<8.0.0
 
 # Tamil Language Support
 indic-transliteration>=2.3.0,<3.0.0
-tamil>=1.0.0               # Tamil language utilities (if available)
-
-# Performance and Monitoring
-psutil>=5.9.0              # System resource monitoring
-tqdm>=4.65.0               # Progress bars for processing
-
-# Optional: Advanced ML/model integrations (for future enhancements)
-# tensorflow>=2.13.0       # Deep learning for advanced OCR
-# torch>=2.0.0             # PyTorch for neural networks
-# transformers>=4.30.0     # Hugging Face transformers for NLP
-
-# Note: Install Tesseract OCR separately on your system:
-# Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
-# Linux: sudo apt-get install tesseract-ocr tesseract-ocr-tam
-# macOS: brew install tesseract
-
-# Installation command:
-# pip install -r requirements.txt
