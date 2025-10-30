@@ -12,6 +12,9 @@ from flask_cors import CORS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Force cache bust for new பொருள் format - v2.0
+logger.info("🔄 API Version 2.0 - Updated பொருள் format with structured sections")
+
 # Ensure project root is on path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
