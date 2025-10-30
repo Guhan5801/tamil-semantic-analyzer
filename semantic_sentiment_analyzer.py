@@ -308,13 +308,23 @@ class SemanticSentimentAnalyzer:
                 response_text = response['text']
                 # Clean the response text
                 import json
+                import re
                 try:
                     clean_response = response_text.strip()
-                    if clean_response.startswith('```json'):
-                        clean_response = clean_response[7:-3]
-                    elif clean_response.startswith('```'):
-                        clean_response = clean_response[3:-3]
                     
+                    # Remove markdown code blocks if present
+                    if '```json' in clean_response:
+                        # Extract content between ```json and ```
+                        match = re.search(r'```json\s*(.*?)\s*```', clean_response, re.DOTALL)
+                        if match:
+                            clean_response = match.group(1)
+                    elif '```' in clean_response:
+                        # Extract content between ``` and ```
+                        match = re.search(r'```\s*(.*?)\s*```', clean_response, re.DOTALL)
+                        if match:
+                            clean_response = match.group(1)
+                    
+                    clean_response = clean_response.strip()
                     parsed_response = json.loads(clean_response)
                     
                     # Build detailed meaning with literary source information
@@ -332,17 +342,31 @@ class SemanticSentimentAnalyzer:
                     if source_parts:
                         detailed_meaning = " | ".join(source_parts) + "\n\n" + detailed_meaning
                     
-                    # Add line-by-line if available
+                    # Add line-by-line if available (handle different data types)
                     if parsed_response.get('line_by_line'):
-                        detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + parsed_response.get('line_by_line')
+                        line_by_line = parsed_response.get('line_by_line')
+                        if isinstance(line_by_line, str):
+                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + line_by_line
+                        elif isinstance(line_by_line, list):
+                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + json.dumps(line_by_line, ensure_ascii=False, indent=2)
+                        elif isinstance(line_by_line, dict):
+                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + json.dumps(line_by_line, ensure_ascii=False, indent=2)
                     
                     # Add explanation if available
                     if parsed_response.get('explanation'):
-                        detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + parsed_response.get('explanation')
+                        explanation = parsed_response.get('explanation')
+                        if isinstance(explanation, str):
+                            detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + explanation
+                        else:
+                            detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + json.dumps(explanation, ensure_ascii=False, indent=2)
                     
                     # Add theme if available
                     if parsed_response.get('theme'):
-                        detailed_meaning += "\n\nகருத்து: " + parsed_response.get('theme')
+                        theme = parsed_response.get('theme')
+                        if isinstance(theme, str):
+                            detailed_meaning += "\n\nகருத்து: " + theme
+                        else:
+                            detailed_meaning += "\n\nகருத்து: " + json.dumps(theme, ensure_ascii=False, indent=2)
                     
                     # Convert to expected format (Tamil-only)
                     result = {

@@ -22,7 +22,7 @@ class GeminiCulturalAnalyzer:
         self.model_name = Config.GEMINI_MODEL
         self.temperature = Config.GEMINI_TEMPERATURE
         self.max_tokens = Config.GEMINI_MAX_TOKENS
-        self.base_url = 'https://generativelanguage.googleapis.com/v1beta/models'
+        self.base_url = 'https://generativelanguage.googleapis.com/v1/models'
         
         # Configure Gemini API
         if self.api_key and self.api_key != 'your_gemini_api_key_here':
