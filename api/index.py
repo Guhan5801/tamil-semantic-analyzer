@@ -1,111 +1,197 @@
-import sys
+"""import sys
+
+Tamil Semantic Analyzer - Vercel Serverless APIimport os
+
+Simplified version to fix deployment issuesimport re
+
+"""import logging
+
+import sysfrom datetime import datetime
+
 import os
-import re
-import logging
+
+# Configure logging
+
+# Add parent directory to Python pathlogging.basicConfig(level=logging.INFO)
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))logger = logging.getLogger(__name__)
+
+sys.path.insert(0, parent_dir)
+
+# Import Flask
+
+from flask import Flask, request, jsonifyfrom flask import Flask, request, jsonify
+
+from flask_cors import CORSfrom flask_cors import CORS
+
 from datetime import datetime
 
-# Configure logging first
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+import re# Initialize Flask app
 
-# Add parent directory to path to import our modules
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parent_dir)
-logger.info(f"Added to path: {parent_dir}")
+import loggingapp = Flask(__name__)
 
-# Import Flask first
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-
-# Initialize Flask app for Vercel
-app = Flask(__name__, 
-           template_folder=os.path.join(parent_dir, 'templates'),
-           static_folder=os.path.join(parent_dir, 'static'))
 CORS(app)
 
-# Try to import and initialize analyzer
-semantic_analyzer = None
+# Configure logging
+
+logging.basicConfig(level=logging.INFO)# Try to import analyzer (but don't crash if it fails)
+
+logger = logging.getLogger(__name__)semantic_analyzer = None
+
 try:
-    from semantic_sentiment_analyzer import SemanticSentimentAnalyzer
-    semantic_analyzer = SemanticSentimentAnalyzer()
-    logger.info("✅ Semantic analyzer initialized successfully")
-except Exception as e:
-    logger.error(f"❌ Failed to initialize semantic analyzer: {e}")
-    # Continue without analyzer - will return error messages
+
+# Create Flask app    # Add parent directory to path
+
+app = Flask(__name__)    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+CORS(app)    sys.path.insert(0, parent_dir)
+
+    
+
+# Initialize analyzer (with error handling)    from semantic_sentiment_analyzer import SemanticSentimentAnalyzer
+
+semantic_analyzer = None    semantic_analyzer = SemanticSentimentAnalyzer()
+
+try:    logger.info("✅ Semantic analyzer initialized")
+
+    from semantic_sentiment_analyzer import SemanticSentimentAnalyzerexcept Exception as e:
+
+    semantic_analyzer = SemanticSentimentAnalyzer()    logger.error(f"❌ Analyzer initialization failed: {e}")
+
+    logger.info("✅ Analyzer initialized")    logger.error(f"Current path: {os.getcwd()}")
+
+except Exception as e:    logger.error(f"Python path: {sys.path}")
+
+    logger.error(f"❌ Analyzer failed: {e}")
 
 @app.route('/')
-def dashboard():
-    """Main dashboard route"""
-    try:
-        return render_template('dashboard.html')
-    except Exception as e:
-        logger.error(f"Dashboard error: {e}")
-        # Fallback to simple HTML if template not found
-        return '''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Tamil Semantic Analyzer</title>
-            <meta charset="UTF-8">
-        </head>
-        <body>
-            <h1>🌟 Tamil Semantic Analyzer API</h1>
-            <p>API is running! Use POST /api/analyze to analyze Tamil text.</p>
-            <p>Health check: <a href="/api/health">/api/health</a></p>
-        </body>
-        </html>
-        '''
+
+@app.route('/')def index():
+
+def home():    """Main route - simple response"""
+
+    """Root endpoint"""    return jsonify({
+
+    return jsonify({        'status': 'running',
+
+        'service': 'Tamil Semantic Analyzer API',        'message': 'Tamil Semantic Analyzer API',
+
+        'status': 'running',        'version': '1.0.0',
+
+        'version': '1.0.0',        'analyzer_available': semantic_analyzer is not None,
+
+        'analyzer': 'available' if semantic_analyzer else 'unavailable',        'endpoints': {
+
+        'endpoints': {            'health': '/api/health',
+
+            'health': '/api/health',            'analyze': '/api/analyze (POST)'
+
+            'analyze': '/api/analyze (POST with JSON: {"text": "your tamil text"})'        }
+
+        }    })
+
+    })
 
 @app.route('/api/health')
-def health_check():
-    """Health check endpoint for Vercel"""
-    try:
-        return jsonify({
-            'status': 'healthy',
-            'service': 'Tamil Semantic Sentiment Analysis API',
-            'version': '1.0.0',
+
+@app.route('/api/health')def health_check():
+
+def health():    """Health check endpoint"""
+
+    """Health check"""    try:
+
+    return jsonify({        import sys
+
+        'status': 'healthy',        return jsonify({
+
+        'analyzer': 'ready' if semantic_analyzer else 'not initialized',            'status': 'healthy',
+
+        'timestamp': datetime.now().isoformat()            'service': 'Tamil Semantic Analyzer',
+
+    })            'version': '1.0.0',
+
             'analyzer_status': 'available' if semantic_analyzer else 'unavailable',
-            'timestamp': datetime.now().isoformat(),
-            'python_version': sys.version
-        })
-    except Exception as e:
-        logger.error(f"Health check error: {e}")
-        return jsonify({
-            'status': 'error',
-            'error': str(e)
-        }), 500
 
-@app.route('/api/analyze', methods=['POST'])
-def api_analyze():
-    """Optimized API endpoint for Tamil text analysis"""
-    try:
-        if not semantic_analyzer:
-            return jsonify({
-                'status': 'error',
-                'error': 'செமாண்டிக் பகுப்பாய்வி கிடைக்கவில்லை (Semantic analyzer not available)'
-            }), 500
+@app.route('/api/analyze', methods=['POST'])            'python_version': sys.version,
 
-        # Get JSON data
-        data = request.get_json()
-        
-        if not data or 'text' not in data:
-            return jsonify({
-                'status': 'error',
-                'error': 'உரை தேவை (Text is required)'
-            }), 400
-        
-        text = data['text'].strip()
-        if not text:
-            return jsonify({
-                'status': 'error',
-                'error': 'வெற்று உரை அனுமதிக்கப்படவில்லை (Empty text not allowed)'
-            }), 400
+def analyze():            'timestamp': datetime.now().isoformat()
 
-        # Check for English words - Tamil only validation
+    """Analyze Tamil text"""        })
+
+    try:    except Exception as e:
+
+        if not semantic_analyzer:        return jsonify({
+
+            return jsonify({'error': 'Analyzer not available'}), 503            'status': 'error',
+
+                    'error': str(e)
+
+        data = request.get_json() or {}        }), 500
+
+        text = data.get('text', '').strip()
+
+        @app.route('/api/analyze', methods=['POST'])
+
+        if not text:def api_analyze():
+
+            return jsonify({'error': 'Text required'}), 400    """Optimized API endpoint for Tamil text analysis"""
+
+            try:
+
+        # Check for English words        if not semantic_analyzer:
+
+        english_words = re.findall(r'\b[a-zA-Z]+\b', text)            return jsonify({
+
+        if english_words:                'status': 'error',
+
+            return jsonify({                'error': 'செமாண்டிக் பகுப்பாய்வி கிடைக்கவில்லை (Semantic analyzer not available)'
+
+                'error': f'English words detected: {", ".join(english_words)}. Tamil only.',            }), 500
+
+                'english_words': english_words
+
+            }), 400        # Get JSON data
+
+                data = request.get_json()
+
+        # Analyze        
+
+        result = semantic_analyzer.analyze_semantic_sentiment(text)        if not data or 'text' not in data:
+
+                    return jsonify({
+
+        return jsonify({                'status': 'error',
+
+            'status': 'success',                'error': 'உரை தேவை (Text is required)'
+
+            'text': text,            }), 400
+
+            'semantic_analysis': result.get('semantic_analysis', {}),        
+
+            'sentiment_analysis': result.get('sentiment_analysis', {}),        text = data['text'].strip()
+
+            'processing_time': result.get('processing_time', '0s'),        if not text:
+
+            'timestamp': datetime.now().isoformat()            return jsonify({
+
+        })                'status': 'error',
+
+                        'error': 'வெற்று உரை அனுமதிக்கப்படவில்லை (Empty text not allowed)'
+
+    except Exception as e:            }), 400
+
+        logger.error(f"Error: {e}")
+
+        return jsonify({'error': str(e)}), 500        # Check for English words - Tamil only validation
+
         english_words = re.findall(r'\b[a-zA-Z]+\b', text)
-        if english_words:
-            return jsonify({
-                'status': 'error',
+
+# For local testing        if english_words:
+
+if __name__ == '__main__':            return jsonify({
+
+    app.run(debug=True, port=5000)                'status': 'error',
+
                 'error': f'ஆங்கில வார்த்தைகள் கண்டறியப்பட்டன: {", ".join(english_words)}. தமிழ் உரை மட்டுமே அனுமதிக்கப்படுகிறது.',
                 'english_words_found': english_words
             }), 400
