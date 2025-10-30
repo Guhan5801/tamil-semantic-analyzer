@@ -4,36 +4,34 @@ import re
 import logging
 from datetime import datetime
 
-# Add parent directory to path to import our modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-try:
-    from flask import Flask, render_template, request, jsonify
-    from flask_cors import CORS
-    from semantic_sentiment_analyzer import SemanticSentimentAnalyzer
-except ImportError as e:
-    print(f"Import error: {e}")
-    # Fallback for Vercel
-    from flask import Flask, jsonify
-    SemanticSentimentAnalyzer = None
-
-# Configure logging
+# Configure logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Add parent directory to path to import our modules
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+logger.info(f"Added to path: {parent_dir}")
+
+# Import Flask first
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
+
 # Initialize Flask app for Vercel
 app = Flask(__name__, 
-           template_folder='../templates',
-           static_folder='../static')
+           template_folder=os.path.join(parent_dir, 'templates'),
+           static_folder=os.path.join(parent_dir, 'static'))
 CORS(app)
 
-# Initialize analyzer
+# Try to import and initialize analyzer
+semantic_analyzer = None
 try:
-    semantic_analyzer = SemanticSentimentAnalyzer() if SemanticSentimentAnalyzer else None
-    logger.info("✅ Semantic analyzer initialized")
+    from semantic_sentiment_analyzer import SemanticSentimentAnalyzer
+    semantic_analyzer = SemanticSentimentAnalyzer()
+    logger.info("✅ Semantic analyzer initialized successfully")
 except Exception as e:
-    semantic_analyzer = None
-    logger.warning(f"⚠️ Failed to initialize semantic analyzer: {e}")
+    logger.error(f"❌ Failed to initialize semantic analyzer: {e}")
+    # Continue without analyzer - will return error messages
 
 @app.route('/')
 def dashboard():
@@ -41,22 +39,41 @@ def dashboard():
     try:
         return render_template('dashboard.html')
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': 'Dashboard not available',
-            'error': str(e)
-        }), 500
+        logger.error(f"Dashboard error: {e}")
+        # Fallback to simple HTML if template not found
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Tamil Semantic Analyzer</title>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+            <h1>🌟 Tamil Semantic Analyzer API</h1>
+            <p>API is running! Use POST /api/analyze to analyze Tamil text.</p>
+            <p>Health check: <a href="/api/health">/api/health</a></p>
+        </body>
+        </html>
+        '''
 
 @app.route('/api/health')
 def health_check():
     """Health check endpoint for Vercel"""
-    return jsonify({
-        'status': 'healthy',
-        'service': 'Tamil Semantic Sentiment Analysis API',
-        'version': '1.0.0',
-        'analyzer_status': 'available' if semantic_analyzer else 'unavailable',
-        'timestamp': datetime.now().isoformat()
-    })
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'service': 'Tamil Semantic Sentiment Analysis API',
+            'version': '1.0.0',
+            'analyzer_status': 'available' if semantic_analyzer else 'unavailable',
+            'timestamp': datetime.now().isoformat(),
+            'python_version': sys.version
+        })
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
 
 @app.route('/api/analyze', methods=['POST'])
 def api_analyze():
