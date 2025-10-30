@@ -1,92 +1,181 @@
-"""import sys
-
-Tamil Semantic Analyzer - Vercel Serverless APIimport os
-
-Simplified version to fix deployment issuesimport re
-
-"""import logging
-
-import sysfrom datetime import datetime
+import sys"""import sys
 
 import os
 
+import reTamil Semantic Analyzer - Vercel Serverless APIimport os
+
+import logging
+
+from datetime import datetimeSimplified version to fix deployment issuesimport re
+
+
+
+# Add parent directory to Python path"""import logging
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(0, parent_dir)import sysfrom datetime import datetime
+
+
+
+from flask import Flask, request, jsonifyimport os
+
+from flask_cors import CORS
+
 # Configure logging
 
-# Add parent directory to Python pathlogging.basicConfig(level=logging.INFO)
+# Configure logging
+
+logging.basicConfig(level=logging.INFO)# Add parent directory to Python pathlogging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))logger = logging.getLogger(__name__)
 
-sys.path.insert(0, parent_dir)
+# Create Flask app
 
-# Import Flask
-
-from flask import Flask, request, jsonifyfrom flask import Flask, request, jsonify
-
-from flask_cors import CORSfrom flask_cors import CORS
-
-from datetime import datetime
-
-import re# Initialize Flask app
-
-import loggingapp = Flask(__name__)
+app = Flask(__name__)sys.path.insert(0, parent_dir)
 
 CORS(app)
 
-# Configure logging
+# Import Flask
 
-logging.basicConfig(level=logging.INFO)# Try to import analyzer (but don't crash if it fails)
+# Initialize analyzer with error handling
 
-logger = logging.getLogger(__name__)semantic_analyzer = None
+semantic_analyzer = Nonefrom flask import Flask, request, jsonifyfrom flask import Flask, request, jsonify
 
 try:
 
+    from semantic_sentiment_analyzer import SemanticSentimentAnalyzerfrom flask_cors import CORSfrom flask_cors import CORS
+
+    semantic_analyzer = SemanticSentimentAnalyzer()
+
+    logger.info("Analyzer initialized successfully")from datetime import datetime
+
+except Exception as e:
+
+    logger.error(f"Analyzer initialization failed: {e}")import re# Initialize Flask app
+
+
+
+@app.route('/')import loggingapp = Flask(__name__)
+
+def home():
+
+    return jsonify({CORS(app)
+
+        'service': 'Tamil Semantic Analyzer API',
+
+        'status': 'running',# Configure logging
+
+        'version': '1.0.0',
+
+        'analyzer': 'available' if semantic_analyzer else 'unavailable',logging.basicConfig(level=logging.INFO)# Try to import analyzer (but don't crash if it fails)
+
+        'endpoints': {
+
+            'health': '/api/health',logger = logging.getLogger(__name__)semantic_analyzer = None
+
+            'analyze': '/api/analyze (POST)'
+
+        }try:
+
+    })
+
 # Create Flask app    # Add parent directory to path
 
-app = Flask(__name__)    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+@app.route('/api/health')
 
-CORS(app)    sys.path.insert(0, parent_dir)
+def health():app = Flask(__name__)    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    
+    return jsonify({
+
+        'status': 'healthy',CORS(app)    sys.path.insert(0, parent_dir)
+
+        'analyzer': 'ready' if semantic_analyzer else 'not initialized',
+
+        'timestamp': datetime.now().isoformat()    
+
+    })
 
 # Initialize analyzer (with error handling)    from semantic_sentiment_analyzer import SemanticSentimentAnalyzer
 
-semantic_analyzer = None    semantic_analyzer = SemanticSentimentAnalyzer()
+@app.route('/api/analyze', methods=['POST'])
 
-try:    logger.info("✅ Semantic analyzer initialized")
+def analyze():semantic_analyzer = None    semantic_analyzer = SemanticSentimentAnalyzer()
 
-    from semantic_sentiment_analyzer import SemanticSentimentAnalyzerexcept Exception as e:
+    try:
 
-    semantic_analyzer = SemanticSentimentAnalyzer()    logger.error(f"❌ Analyzer initialization failed: {e}")
+        if not semantic_analyzer:try:    logger.info("✅ Semantic analyzer initialized")
 
-    logger.info("✅ Analyzer initialized")    logger.error(f"Current path: {os.getcwd()}")
+            return jsonify({'error': 'Analyzer not available'}), 503
 
-except Exception as e:    logger.error(f"Python path: {sys.path}")
+            from semantic_sentiment_analyzer import SemanticSentimentAnalyzerexcept Exception as e:
 
-    logger.error(f"❌ Analyzer failed: {e}")
+        data = request.get_json() or {}
 
-@app.route('/')
+        text = data.get('text', '').strip()    semantic_analyzer = SemanticSentimentAnalyzer()    logger.error(f"❌ Analyzer initialization failed: {e}")
 
-@app.route('/')def index():
+        
 
-def home():    """Main route - simple response"""
+        if not text:    logger.info("✅ Analyzer initialized")    logger.error(f"Current path: {os.getcwd()}")
 
-    """Root endpoint"""    return jsonify({
+            return jsonify({'error': 'Text required'}), 400
 
-    return jsonify({        'status': 'running',
+        except Exception as e:    logger.error(f"Python path: {sys.path}")
 
-        'service': 'Tamil Semantic Analyzer API',        'message': 'Tamil Semantic Analyzer API',
+        # Check for English words
 
-        'status': 'running',        'version': '1.0.0',
+        english_words = re.findall(r'\b[a-zA-Z]+\b', text)    logger.error(f"❌ Analyzer failed: {e}")
 
-        'version': '1.0.0',        'analyzer_available': semantic_analyzer is not None,
+        if english_words:
 
-        'analyzer': 'available' if semantic_analyzer else 'unavailable',        'endpoints': {
+            return jsonify({@app.route('/')
 
-        'endpoints': {            'health': '/api/health',
+                'error': f'English words detected: {", ".join(english_words)}',
+
+                'english_words': english_words@app.route('/')def index():
+
+            }), 400
+
+        def home():    """Main route - simple response"""
+
+        # Analyze
+
+        result = semantic_analyzer.analyze_semantic_sentiment(text)    """Root endpoint"""    return jsonify({
+
+        
+
+        return jsonify({    return jsonify({        'status': 'running',
+
+            'status': 'success',
+
+            'text': text,        'service': 'Tamil Semantic Analyzer API',        'message': 'Tamil Semantic Analyzer API',
+
+            'semantic_analysis': result.get('semantic_analysis', {}),
+
+            'sentiment_analysis': result.get('sentiment_analysis', {}),        'status': 'running',        'version': '1.0.0',
+
+            'processing_time': result.get('processing_time', '0s'),
+
+            'timestamp': datetime.now().isoformat()        'version': '1.0.0',        'analyzer_available': semantic_analyzer is not None,
+
+        })
+
+                'analyzer': 'available' if semantic_analyzer else 'unavailable',        'endpoints': {
+
+    except Exception as e:
+
+        logger.error(f"Analysis error: {e}")        'endpoints': {            'health': '/api/health',
+
+        return jsonify({'error': str(e)}), 500
 
             'health': '/api/health',            'analyze': '/api/analyze (POST)'
 
-            'analyze': '/api/analyze (POST with JSON: {"text": "your tamil text"})'        }
+if __name__ == '__main__':
+
+    app.run(debug=True, port=5000)            'analyze': '/api/analyze (POST with JSON: {"text": "your tamil text"})'        }
+
 
         }    })
 
