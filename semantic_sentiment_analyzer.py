@@ -248,8 +248,13 @@ class SemanticSentimentAnalyzer:
                 return meaning
         
         # Construct a more explicit explanation in Tamil based on length & cues
-        sentences = [s.strip() for s in re.split(r'[\.!?\n]+', text) if s.strip()]
-        themes = self._extract_basic_themes(text)
+        try:
+            sentences = [s.strip() for s in re.split(r'[\.!?\n]+', text) if s.strip()]
+            themes = self._extract_basic_themes(text)
+        except Exception:
+            # Fallback in case regex or theme extraction fails
+            sentences = []
+            themes = []
 
         prefix = 'உரையின் தெளிவான விளக்கம்: '
         # Short texts
@@ -259,16 +264,16 @@ class SemanticSentimentAnalyzer:
         if len(words) <= 20:
             detail = 'இந்த உரை சுருக்கமாக ஒரு எண்ணத்தை விவரிக்கிறது.'
             if themes:
-                detail += f" இது முக்கியமாக {', '.join(themes)} தொடர்பான கருத்துகளைத் தொடுகிறது."
+                detail += " இது முக்கியமாக " + ", ".join(str(t) for t in themes) + " தொடர்பான கருத்துகளைத் தொடுகிறது."
             if len(sentences) >= 2:
                 detail += ' வாக்கியங்களின் ஒழுங்கு தெளிவாக உள்ளது.'
             return prefix + detail
         # Long texts
         detail = 'இந்த உரை விரிவாக ஒரு கருத்தை விளக்குகிறது.'
         if themes:
-            detail += f" பிரதான தீம்கள்: {', '.join(themes)}."
+            detail += " பிரதான தீம்கள்: " + ", ".join(str(t) for t in themes) + "."
         if len(sentences) >= 3:
-            detail += f" மொத்தம் {len(sentences)} பகுதி/வாக்கியங்களாக தகவல் படிகட்டாக வழங்கப்பட்டுள்ளது."
+            detail += " மொத்தம் " + str(len(sentences)) + " பகுதி/வாக்கியங்களாக தகவல் படிகட்டாக வழங்கப்பட்டுள்ளது."
         detail += ' உள்ளடக்கத்தின் பொருள், சூழல், நோக்கம் ஆகியவை தொடர்ச்சியாக விளக்கப்பட்டுள்ளன.'
         return prefix + detail
     
