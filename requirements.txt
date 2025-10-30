@@ -1,37 +1,15 @@
-# Tamil Handwritten OCR System - Requirements
-# Dependencies for converting Tamil handwritten images to digital text with cultural context
+# Tamil Semantic Analyzer - Minimal Requirements for Vercel Deployment
+# Only includes dependencies needed for the web interface and Gemini integration
 
-# Core OCR and Image Processing
-opencv-python>=4.8.0,<5.0.0
-easyocr>=1.7.0,<2.0.0
-pytesseract>=0.3.10,<1.0.0
-Pillow>=10.0.0,<11.0.0
-numpy>=1.24.0,<2.0.0
-
-# Enhancement integration
+# Gemini AI Integration
 google-generativeai>=0.3.0,<1.0.0
 requests>=2.28.0,<3.0.0
-
-# Image Enhancement and Computer Vision  
-scikit-image>=0.20.0,<1.0.0
-scipy>=1.10.0,<2.0.0
-matplotlib>=3.7.0,<4.0.0
-
-# Database and Text Processing
-fuzzywuzzy>=0.18.0,<1.0.0
-python-Levenshtein>=0.20.0,<1.0.0
 
 # Web Interface and API
 flask>=2.3.0,<4.0.0
 flask-cors>=4.0.0,<5.0.0
 werkzeug>=2.3.0,<4.0.0
 jinja2>=3.1.0,<4.0.0
-
-# Development and Testing
-pytest>=7.0.0,<8.0.0
-pytest-cov>=4.0.0,<5.0.0
-black>=23.0.0,<25.0.0
-flake8>=6.0.0,<8.0.0
 
 # Tamil Language Support
 indic-transliteration>=2.3.0,<3.0.0
