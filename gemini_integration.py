@@ -331,35 +331,43 @@ Format your response as detailed explanatory text, focusing on educational value
             return {'success': False, 'error': str(e)}
     
     def get_conversational_meaning(self, text: str) -> Optional[Dict[str, Any]]:
-        """Get conversational meaning in both Tamil and English like ordinary chat"""
+        """Get accurate literary meaning with book/source identification in Tamil only"""
         if not self.is_available:
             return None
             
         try:
-            # Enhanced bilingual prompt for natural meaning extraction
-            conversational_prompt = f"""You are a Tamil language expert. Please analyze this Tamil text and provide meanings in both languages:
+            # Enhanced prompt for accurate literary analysis with source identification
+            conversational_prompt = f"""நீங்கள் ஒரு தமிழ் இலக்கிய வல்லுநர். கீழே கொடுக்கப்பட்ட தமிழ் உரையை ஆழமாக பகுப்பாய்வு செய்யவும்.
 
-Text: "{text}"
+உரை: "{text}"
 
-Please provide a natural, conversational explanation of what this text means, covering its essence, sentiment, and cultural context.
+தயவுசெய்து இவற்றை தெளிவாக விளக்கவும்:
+1. இது எந்த நூல் அல்லது இலக்கியத்திலிருந்து வந்ததா? (திருக்குறள், கம்பராமாயணம், சங்க இலக்கியம், நாலடியார், திருவாசகம், போன்றவை)
+2. நூலின் பெயர், அதிகாரம், பாடல் எண் ஆகியவற்றை துல்லியமாக கண்டறியவும்
+3. இந்த பாடல்/செய்யுளின் முழுமையான பொருள் என்ன?
+4. வரிக்கு வரி விளக்கம்
+5. இதன் கருத்து மற்றும் நோக்கம்
 
-Respond in JSON format:
+JSON வடிவத்தில் பதிலளிக்கவும்:
 {{
-  "tamil_meaning": "இந்த உரையின் பொருள் எளிமையான தமிழில் - இயல்பான பேச்சுவழக்கில்",
-  "english_meaning": "Natural English explanation of what this text means and expresses",
-  "explanation": "Detailed explanation in Tamil about the context and nuances",
-  "sentiment": "positive/negative/neutral",
-  "cultural_context": "Any cultural or contextual insights in English"
+  "tamil_meaning": "பாடலின் முழு பொருள் தெளிவான தமிழில்",
+  "source_book": "நூலின் பெயர் (எ.கா: திருக்குறள், கம்பராமாயணம்)",
+  "chapter_section": "அதிகாரம் அல்லது காண்டம், படலம்",
+  "verse_number": "பாடல் எண்",
+  "line_by_line": "வரிக்கு வரி விளக்கம்",
+  "explanation": "விரிவான சூழல் மற்றும் விளக்கம்",
+  "theme": "முக்கிய கருத்து",
+  "sentiment": "positive/negative/neutral"
 }}
 
-Make the explanations conversational and natural, as if explaining to a friend what the text is about."""
+உரை எந்த பிரபல நூலிலிருந்து வந்ததோ அதை துல்லியமாக கண்டறிந்து தெளிவான விளக்கம் தரவும். உரை சாதாரண வாக்கியமாக இருந்தால், அதன் பொருளை மட்டும் தெளிவாக விளக்கவும்."""
             
             api_response = self._call_gemini_api(conversational_prompt)
             if api_response and api_response.get('success'):
                 return {'text': api_response.get('content', '')}
             return None
         except Exception as e:
-            logger.error(f"Conversational meaning analysis failed: {e}")
+            logger.error(f"Literary meaning analysis failed: {e}")
             return None
 
     def analyze_semantic_sentiment(self, text: str, prompt: str) -> Optional[Dict[str, Any]]:

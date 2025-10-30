@@ -296,12 +296,12 @@ class SemanticSentimentAnalyzer:
         return themes
     
     def _get_gemini_semantic_sentiment(self, text: str) -> Dict[str, Any]:
-        """Get enhanced semantic and sentiment analysis from Gemini using conversational approach"""
+        """Get enhanced semantic and sentiment analysis from Gemini with literary source identification"""
         if not self.gemini_analyzer or not self.gemini_analyzer.is_available:
             return {}
         
         try:
-            # Use the conversational meaning method
+            # Use the conversational meaning method for literary analysis
             response = self.gemini_analyzer.get_conversational_meaning(text)
             # If response has text content, process it
             if response and response.get('text'):
@@ -317,19 +317,48 @@ class SemanticSentimentAnalyzer:
                     
                     parsed_response = json.loads(clean_response)
                     
-                    # Convert to expected format with bilingual support
+                    # Build detailed meaning with literary source information
+                    detailed_meaning = parsed_response.get('tamil_meaning', '')
+                    
+                    # Add source book information if available
+                    source_parts = []
+                    if parsed_response.get('source_book'):
+                        source_parts.append("நூல்: " + parsed_response.get('source_book'))
+                    if parsed_response.get('chapter_section'):
+                        source_parts.append("பகுதி: " + parsed_response.get('chapter_section'))
+                    if parsed_response.get('verse_number'):
+                        source_parts.append("பாடல்: " + str(parsed_response.get('verse_number')))
+                    
+                    if source_parts:
+                        detailed_meaning = " | ".join(source_parts) + "\n\n" + detailed_meaning
+                    
+                    # Add line-by-line if available
+                    if parsed_response.get('line_by_line'):
+                        detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + parsed_response.get('line_by_line')
+                    
+                    # Add explanation if available
+                    if parsed_response.get('explanation'):
+                        detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + parsed_response.get('explanation')
+                    
+                    # Add theme if available
+                    if parsed_response.get('theme'):
+                        detailed_meaning += "\n\nகருத்து: " + parsed_response.get('theme')
+                    
+                    # Convert to expected format (Tamil-only)
                     result = {
                         'semantic': {
-                            # Tamil-only mapping; ignore any english field
-                            'meaning': parsed_response.get('tamil_meaning', parsed_response.get('meaning', '')),
+                            'meaning': detailed_meaning,
+                            'source_book': parsed_response.get('source_book', ''),
+                            'chapter_section': parsed_response.get('chapter_section', ''),
+                            'verse_number': parsed_response.get('verse_number', ''),
                             'explanation': parsed_response.get('explanation', ''),
-                            'cultural_context': parsed_response.get('cultural_context', ''),
+                            'theme': parsed_response.get('theme', ''),
                             'themes': []
                         },
                         'sentiment': {
                             'overall_sentiment': parsed_response.get('sentiment', 'neutral'),
-                            'confidence': 0.8,
-                            'explanation': 'Gemini வழங்கிய உணர்வு ஆய்வு'
+                            'confidence': 0.9,
+                            'explanation': 'Gemini AI மூலம் பகுப்பாய்வு செய்யப்பட்டது'
                         }
                     }
                     return result
