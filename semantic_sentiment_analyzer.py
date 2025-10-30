@@ -33,13 +33,23 @@ class SemanticSentimentAnalyzer:
         self.analysis_cache = {}  # Simple in-memory cache
         self.cache_max_size = 100  # Maximum cache size
         
+        logger.info(f"Initializing SemanticSentimentAnalyzer:")
+        logger.info(f"  ENABLE_GEMINI_ENHANCEMENT = {Config.ENABLE_GEMINI_ENHANCEMENT}")
+        logger.info(f"  GEMINI_AVAILABLE = {GEMINI_AVAILABLE}")
+        logger.info(f"  is_gemini_available() = {Config.is_gemini_available()}")
+        logger.info(f"  gemini_enabled = {self.gemini_enabled}")
+        
         if self.gemini_enabled and GeminiCulturalAnalyzer is not None:
             try:
                 self.gemini_analyzer = GeminiCulturalAnalyzer()
-                logger.info("✅ Enhanced Semantic Analyzer initialized")
+                logger.info("✅ Enhanced Semantic Analyzer initialized with Gemini")
             except Exception as e:
-                logger.warning(f"⚠️ Failed to initialize enhanced analyzer: {str(e)}")
+                logger.error(f"❌ Failed to initialize enhanced analyzer: {str(e)}")
+                import traceback
+                logger.error(traceback.format_exc())
                 self.gemini_enabled = False
+        else:
+            logger.warning("⚠️ Gemini enhancement disabled")
     
     def _get_cache_key(self, text: str) -> str:
         """Generate cache key for text"""

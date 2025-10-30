@@ -59,9 +59,19 @@ def root():
 
 @app.route('/api/health')
 def health():
+    gemini_status = {}
+    if semantic_analyzer:
+        gemini_status = {
+            'gemini_enabled': semantic_analyzer.gemini_enabled,
+            'gemini_analyzer_exists': semantic_analyzer.gemini_analyzer is not None,
+            'model_name': semantic_analyzer.gemini_analyzer.model_name if semantic_analyzer.gemini_analyzer else None,
+            'api_available': semantic_analyzer.gemini_analyzer.is_available if semantic_analyzer.gemini_analyzer else False
+        }
+    
     return jsonify({
         'status': 'healthy',
         'analyzer': 'ready' if semantic_analyzer else 'not initialized',
+        'gemini_status': gemini_status,
         'timestamp': datetime.now().isoformat(),
         'commit': os.getenv('VERCEL_GIT_COMMIT_SHA') or os.getenv('GIT_COMMIT_SHA'),
         'environment': os.getenv('VERCEL_ENV') or os.getenv('ENV'),
@@ -93,6 +103,10 @@ def analyze():
 
         logger.info(f"Analyze request: {len(text)} chars")
         result = semantic_analyzer.analyze_semantic_sentiment(text)
+        
+        # Log enhancement status
+        logger.info(f"Analysis complete: enhanced={result.get('enhanced_analysis', False)}, " +
+                   f"gemini_error={result.get('gemini_error', 'none')}")
 
         # Do not return any english_meaning key and ensure Tamil-only fields
         semantic_out = dict(result.get('semantic_analysis', {}) or {})
