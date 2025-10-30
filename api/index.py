@@ -41,16 +41,76 @@ def _file_md5(path: str) -> str | None:
 
 @app.route('/')
 def root():
-    return jsonify({
-        'service': 'Tamil Semantic Analyzer API',
-        'status': 'running',
-        'version': '1.0.0',
-        'analyzer': 'available' if semantic_analyzer else 'unavailable',
-        'endpoints': {
-            'health': '/api/health',
-            'analyze': '/api/analyze (POST)'
-        }
-    })
+        html = """<!DOCTYPE html>
+<html lang=\"ta\">
+<head>
+    <meta charset=\"UTF-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+    <title>Tamil Semantic & Sentiment Analyzer</title>
+    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css\" rel=\"stylesheet\">
+    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\" rel=\"stylesheet\">
+    <style>
+        body{font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans Tamil', sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;color:#374151}
+        .container{max-width:1000px;margin:32px auto;background:#fff;border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,.08);overflow:hidden}
+        .header{padding:24px 28px;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff}
+        .content{padding:24px 28px}
+        .section{background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:16px;margin-top:16px}
+        textarea{width:100%;border:2px solid #e5e7eb;border-radius:8px;padding:12px}
+    </style>
+    <script defer src=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js\"></script>
+    <script defer src=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js\"></script>
+    <meta name=\"robots\" content=\"noindex\" />
+    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https:; img-src 'self' data:;\" />
+    <meta name=\"color-scheme\" content=\"light\" />
+    <meta name=\"description\" content=\"Tamil-only text analyzer running on Vercel\" />
+</head>
+<body>
+    <div class=\"container\"> 
+        <div class=\"header\">
+            <h2 class=\"mb-1\"><i class=\"fa fa-language\"></i> Tamil Semantic & Sentiment Analyzer</h2>
+            <div style=\"opacity:.9\">Tamil-only input. English is rejected.</div>
+        </div>
+        <div class=\"content\">
+            <div class=\"section\">
+                <label for=\"text\" class=\"form-label\">Enter Tamil Text</label>
+                <textarea id=\"text\" rows=\"6\" placeholder=\"உங்கள் தமிழ் உரையை இங்கே தட்டச்சு செய்யவும்...\"></textarea>
+                <button id=\"go\" class=\"btn btn-primary mt-3\"><i class=\"fa fa-search\"></i> Analyze</button>
+            </div>
+            <div id=\"out\" class=\"section\" style=\"display:none\"></div>
+        </div>
+    </div>
+    <script>
+        const btn = document.getElementById('go');
+        const ta = document.getElementById('text');
+        const out = document.getElementById('out');
+        btn.addEventListener('click', async () => {
+            const text = (ta.value || '').trim();
+            if(!text){ alert('Please enter Tamil text.'); return; }
+            btn.disabled = true; btn.innerHTML = '<i class=\"fa fa-spinner fa-spin\"></i> Analyzing...';
+            try{
+                const r = await fetch('/api/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text})});
+                const data = await r.json();
+                out.style.display = 'block';
+                if(!r.ok){
+                    out.innerHTML = '<div class=\"text-danger\">' + (data.error || 'Error') + '</div>';
+                }else{
+                    const sem = data.semantic_analysis || {}; const sen = data.sentiment_analysis || {};
+                    out.innerHTML = `
+                        <div><strong>Language:</strong> ${sem.language_detected || 'unknown'}</div>
+                        <div><strong>Words:</strong> ${sem.word_count || 0}</div>
+                        <div><strong>Complexity:</strong> ${sem.text_complexity || 'unknown'}</div>
+                        ${sem.meaning ? `<div class=\"mt-2\"><strong>Meaning:</strong> ${sem.meaning}</div>` : ''}
+                        <hr/>
+                        <div><strong>Sentiment:</strong> ${sen.overall_sentiment || 'neutral'} (${Math.round((sen.confidence||0)*100)}%)</div>
+                    `;
+                }
+            }catch(e){ out.style.display='block'; out.innerHTML = '<div class=\"text-danger\">Request failed.</div>'; }
+            finally{ btn.disabled = false; btn.innerHTML = '<i class=\"fa fa-search\"></i> Analyze'; }
+        });
+    </script>
+</body>
+</html>`"""
+        return html, 200, {"Content-Type": "text/html; charset=utf-8"}
 
 
 @app.route('/api/health')
