@@ -91,10 +91,10 @@ class SemanticSentimentAnalyzer:
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
         }
         
-        # Basic semantic analysis
+        # Basic semantic analysis (will be replaced by Gemini if available)
         analysis_result['semantic_analysis'] = self._basic_semantic_analysis(text)
         
-        # Basic sentiment analysis
+        # Basic sentiment analysis (will be enhanced by Gemini if available)
         analysis_result['sentiment_analysis'] = self._basic_sentiment_analysis(text)
         
         # Enhanced analysis with advanced NLP if available
@@ -102,17 +102,34 @@ class SemanticSentimentAnalyzer:
             logger.info("Enhancing with conversational Gemini analysis...")
             try:
                 enhanced_analysis = self._get_gemini_semantic_sentiment(text)
-                if enhanced_analysis:
-                    # Update with enhanced results
-                    if enhanced_analysis.get('semantic'):
-                        analysis_result['semantic_analysis'].update(enhanced_analysis['semantic'])
+                if enhanced_analysis and enhanced_analysis.get('semantic'):
+                    # COMPLETELY REPLACE semantic analysis with Gemini results
+                    # Keep only word counts from basic analysis
+                    basic_stats = {
+                        'word_count': analysis_result['semantic_analysis'].get('word_count', 0),
+                        'tamil_word_count': analysis_result['semantic_analysis'].get('tamil_word_count', 0),
+                        'character_count': analysis_result['semantic_analysis'].get('character_count', 0),
+                    }
+                    # Replace with Gemini analysis
+                    analysis_result['semantic_analysis'] = enhanced_analysis['semantic']
+                    # Add back basic stats
+                    analysis_result['semantic_analysis'].update(basic_stats)
+                    
+                    # Update sentiment if provided by Gemini
                     if enhanced_analysis.get('sentiment'):
                         analysis_result['sentiment_analysis'].update(enhanced_analysis['sentiment'])
+                    
                     analysis_result['enhanced_analysis'] = True
                     logger.info("✅ Conversational Gemini enhancement completed")
+                else:
+                    logger.warning("⚠️ Gemini returned empty result, using basic analysis")
             except Exception as e:
-                logger.warning(f"⚠️ Gemini enhancement failed: {str(e)}")
+                logger.error(f"❌ Gemini enhancement failed: {str(e)}")
+                import traceback
+                logger.error(traceback.format_exc())
                 analysis_result['gemini_error'] = str(e)
+        else:
+            logger.warning(f"⚠️ Gemini not available (enabled={self.gemini_enabled}, analyzer={self.gemini_analyzer is not None})")
         
         processing_time = time.time() - start_time
         analysis_result['processing_time'] = f"{processing_time:.2f}s"
