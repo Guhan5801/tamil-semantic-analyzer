@@ -13,6 +13,14 @@
     {
       "src": "^/api/.*",
       "dest": "api/index.py"
+    },
+    {
+      "src": "^/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "^(?!/api/).*",
+      "dest": "/index.html"
     }
   ],
   "env": {
