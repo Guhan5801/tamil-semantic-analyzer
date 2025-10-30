@@ -117,7 +117,7 @@ class SemanticSentimentAnalyzer:
         return analysis_result
     
     def _basic_semantic_analysis(self, text: str) -> Dict[str, Any]:
-        """Basic semantic analysis without Gemini"""
+        """Basic semantic analysis without Gemini (Tamil-only outputs)"""
         
         # Improved word count for Tamil text
         # Split by spaces and punctuation, filter empty strings
@@ -138,7 +138,8 @@ class SemanticSentimentAnalyzer:
             'text_complexity': 'simple' if len(words) < 10 else 'moderate' if len(words) < 25 else 'complex',
             'key_themes': self._extract_basic_themes(text),
             'semantic_density': len(tamil_words) / len(text) if len(text) > 0 else 0,
-            'meaning': self._generate_basic_meaning(text, words, tamil_words)
+            # Produce a clearer Tamil-only explanation
+            'meaning': self._generate_basic_meaning(text, words, tamil_words),
         }
         
         return semantic_analysis
@@ -223,7 +224,10 @@ class SemanticSentimentAnalyzer:
         return sentiment_analysis
     
     def _generate_basic_meaning(self, text: str, words: list, tamil_words: list) -> str:
-        """Generate basic meaning interpretation of the text"""
+        """Generate a clearer Tamil-only explanation of the text.
+        This is heuristic and lightweight to keep serverless fast. If Gemini is enabled,
+        enhanced results will further improve clarity via _get_gemini_semantic_sentiment.
+        """
         
         # Common Tamil greetings and their meanings
         meaning_patterns = {
@@ -238,21 +242,35 @@ class SemanticSentimentAnalyzer:
             'நல்ல': 'நேர்மறையான குணங்களை விவரிக்கும் உரை'
         }
         
-        # Check for specific patterns
+        # Check for specific patterns (quick wins)
         for pattern, meaning in meaning_patterns.items():
             if pattern in text:
                 return meaning
         
-        # Generate basic meaning based on analysis
-        if len(tamil_words) > len(words) / 2:
-            if len(words) <= 5:
-                return 'இது ஒரு சிறிய தமிழ் வாக்கியம் அல்லது சொற்றொடர்'
-            elif len(words) <= 15:
-                return 'இது ஒரு நடுத்தர அளவிலான தமிழ் உரை'
-            else:
-                return 'இது ஒரு விரிவான தமிழ் உரை அல்லது பத்தி'
-        else:
-            return 'இது கலந்த மொழி உரை அல்லது குறுகிய செய்தி'
+        # Construct a more explicit explanation in Tamil based on length & cues
+        sentences = [s.strip() for s in re.split(r'[\.!?\n]+', text) if s.strip()]
+        themes = self._extract_basic_themes(text)
+
+        prefix = 'உரையின் தெளிவான விளக்கம்: '
+        # Short texts
+        if len(words) <= 5:
+            return prefix + 'குறுகிய தமிழ் சொற்றொடர்/வாக்கியம். உரை சுருக்கமாக அதன் கருத்தை வெளிப்படுத்துகிறது.'
+        # Medium texts
+        if len(words) <= 20:
+            detail = 'இந்த உரை சுருக்கமாக ஒரு எண்ணத்தை விவரிக்கிறது.'
+            if themes:
+                detail += f" இது முக்கியமாக {', '.join(themes)} தொடர்பான கருத்துகளைத் தொடுகிறது."
+            if len(sentences) >= 2:
+                detail += ' வாக்கியங்களின் ஒழுங்கு தெளிவாக உள்ளது.'
+            return prefix + detail
+        # Long texts
+        detail = 'இந்த உரை விரிவாக ஒரு கருத்தை விளக்குகிறது.'
+        if themes:
+            detail += f" பிரதான தீம்கள்: {', '.join(themes)}."
+        if len(sentences) >= 3:
+            detail += f" மொத்தம் {len(sentences)} பகுதி/வாக்கியங்களாக தகவல் படிகட்டாக வழங்கப்பட்டுள்ளது."
+        detail += ' உள்ளடக்கத்தின் பொருள், சூழல், நோக்கம் ஆகியவை தொடர்ச்சியாக விளக்கப்பட்டுள்ளன.'
+        return prefix + detail
     
     def _extract_basic_themes(self, text: str) -> list:
         """Extract basic themes from text"""
@@ -297,8 +315,8 @@ class SemanticSentimentAnalyzer:
                     # Convert to expected format with bilingual support
                     result = {
                         'semantic': {
+                            # Tamil-only mapping; ignore any english field
                             'meaning': parsed_response.get('tamil_meaning', parsed_response.get('meaning', '')),
-                            'english_meaning': parsed_response.get('english_meaning', ''),
                             'explanation': parsed_response.get('explanation', ''),
                             'cultural_context': parsed_response.get('cultural_context', ''),
                             'themes': []
@@ -316,10 +334,9 @@ class SemanticSentimentAnalyzer:
                     # If JSON parsing fails, use the raw response as meaning
                     return {
                         'semantic': {
-                            'meaning': response_text,
-                            'english_meaning': 'English translation not available - Gemini response parsing failed',
+                            'meaning': response_text,  # Tamil text expected from Gemini configuration
                             'explanation': response_text,
-                            'cultural_context': 'Unable to parse cultural context',
+                            'cultural_context': 'சூழல் பகுப்பாய்வு பெற இயலவில்லை',
                             'themes': []
                         },
                         'sentiment': {

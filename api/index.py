@@ -94,10 +94,14 @@ def analyze():
         logger.info(f"Analyze request: {len(text)} chars")
         result = semantic_analyzer.analyze_semantic_sentiment(text)
 
-        # Do not return any english_meaning key
+        # Do not return any english_meaning key and ensure Tamil-only fields
         semantic_out = dict(result.get('semantic_analysis', {}) or {})
         if 'english_meaning' in semantic_out:
             semantic_out.pop('english_meaning', None)
+        # If Gemini added any nested fields inadvertently
+        for k in list(semantic_out.keys()):
+            if 'english' in k.lower():
+                semantic_out.pop(k, None)
 
         response = {
             'status': 'success',

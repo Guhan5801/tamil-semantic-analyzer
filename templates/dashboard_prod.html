@@ -320,7 +320,7 @@
         <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-language"></i> Tamil Semantic & Sentiment Analyzer</h1>
-            <p class="subtitle">Advanced Tamil text analysis with AI-powered bilingual meaning extraction</p>
+            <p class="subtitle">தமிழில் தெளிவான பொருள் மற்றும் உணர்வு பகுப்பாய்வு (தமிழ் மட்டும்)</p>
             {% if app_info and app_info.features %}
             <div class="mt-3">
                 {% for feature in app_info.features[:3] %}
@@ -392,18 +392,18 @@
                 <div class="meaning-section">
                     <div class="section-header">
                         <i class="fas fa-language section-icon"></i>
-                        Meaning & Context
+                        தமிழ் விளக்கம்
                     </div>
                     <div class="section-content">
                         <div id="loadingMeaning" class="loading">
                             <div class="spinner"></div>
-                            <p>Generating meanings...</p>
+                            <p>விளக்கம் உருவாக்கப்படுகிறது...</p>
                         </div>
                         
                         <div id="meaningResults" class="empty-state">
                             <i class="fas fa-comments"></i>
-                            <h5>Bilingual Meanings</h5>
-                            <p>AI-powered Tamil and English explanations will appear here after analysis.</p>
+                            <h5>தமிழ் பொருள்</h5>
+                            <p>பகுப்பாய்வு முடிந்தவுடன் தமிழில் தெளிவான விளக்கம் இங்கே காட்டப்படும்.</p>
                         </div>
                     </div>
                 </div>
@@ -530,20 +530,12 @@
 
         function updateSemanticMeaning(semantic) {
             const tamilMeaning = semantic.meaning || 'பொருள் கிடைக்கவில்லை';
-            const englishMeaning = semantic.english_meaning || 'Meaning not available';
-
             meaningResults.innerHTML = `
                 <div class="meaning-panel tamil">
                     <div class="meaning-title">
                         <i class="fas fa-comment"></i> தமிழ் பொருள்
                     </div>
                     <div class="meaning-text tamil-text">${tamilMeaning}</div>
-                </div>
-                <div class="meaning-panel english">
-                    <div class="meaning-title">
-                        <i class="fas fa-globe"></i> English Meaning
-                    </div>
-                    <div class="meaning-text">${englishMeaning}</div>
                 </div>
             `;
         }
