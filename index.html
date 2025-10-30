@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tamil Semantic & Sentiment Analyzer</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --success-color: #059669;
+      --danger-color: #dc2626;
+      --tamil-bg: #e3f2fd;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+      --transition: all .3s cubic-bezier(.4,0,.2,1);
+    }
+    body { font-family: 'Inter','Noto Sans Tamil',sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; margin:0; color:#374151; }
+    .main-container { background: rgba(255,255,255,.95); backdrop-filter: blur(10px); border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin: 20px; min-height: calc(100vh - 40px); }
+    .header { background: linear-gradient(135deg,var(--primary-color),var(--secondary-color)); color:#fff; padding:2rem; border-radius: var(--border-radius) var(--border-radius) 0 0; text-align:center; position:relative; overflow:hidden; }
+    .header h1 { font-size:2.5rem; font-weight:700; margin:0; position:relative; z-index:1; }
+    .header .subtitle { font-size:1.05rem; opacity:.9; margin-top:.5rem; position:relative; z-index:1; }
+    .content-area { padding:2rem; }
+    .analysis-container { display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-top:2rem; }
+    @media (max-width: 1200px){ .analysis-container { grid-template-columns: 1fr; gap:1.5rem; } }
+    .input-section, .results-section { background:#fff; border-radius: var(--border-radius); box-shadow: var(--box-shadow); overflow:hidden; transition: var(--transition); }
+    .input-section:hover, .results-section:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); transform: translateY(-2px); }
+    .section-header { padding:1.5rem; font-weight:600; font-size:1.2rem; border-bottom:2px solid #f3f4f6; display:flex; align-items:center; gap:.75rem; }
+    .input-section .section-header { background: linear-gradient(135deg,#10b981,#059669); color:#fff; }
+    .results-section .section-header { background: linear-gradient(135deg,var(--primary-color),var(--secondary-color)); color:#fff; }
+    .section-content { padding:1.5rem; }
+    .form-control { border:2px solid #e5e7eb; border-radius:8px; transition: var(--transition); font-family:'Noto Sans Tamil',sans-serif; font-size:1rem; }
+    .form-control:focus { border-color: var(--primary-color); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+    .btn-primary { background: linear-gradient(135deg,var(--primary-color),var(--secondary-color)); border:none; border-radius:8px; padding:.75rem 2rem; font-weight:600; transition: var(--transition); text-transform:uppercase; letter-spacing:.5px; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,.4); }
+    .analysis-result { background:#f8fafc; border-radius:8px; padding:1rem; margin-bottom:1rem; border-left:4px solid var(--primary-color); }
+    .tamil-text { font-family:'Noto Sans Tamil',sans-serif; font-size:1.05rem; }
+    .empty-state { text-align:center; padding:3rem 1rem; color:#6b7280; }
+    .empty-state i { font-size:3rem; margin-bottom:1rem; opacity:.5; }
+    .powered-by { text-align:center; padding:2rem; border-top:1px solid #e5e7eb; background:#f9fafb; margin-top:2rem; color:#6b7280; }
+    .powered-by strong { color: var(--primary-color); }
+    .status-indicator { position:fixed; top:20px; right:20px; padding:.75rem 1rem; border-radius:8px; color:#fff; font-weight:500; z-index:1000; transform: translateY(-100px); transition: var(--transition); }
+    .status-indicator.show { transform: translateY(0); }
+    .status-indicator.success { background: var(--success-color); }
+    .status-indicator.error { background: var(--danger-color); }
+    .loading { display:none; text-align:center; padding:2rem; }
+    .loading.show { display:block; }
+    .spinner { width:40px; height:40px; border:4px solid #f3f4f6; border-top:4px solid var(--primary-color); border-radius:50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="header">
+      <h1><i class="fas fa-language"></i> Tamil Semantic & Sentiment Analyzer</h1>
+      <p class="subtitle">Tamil-only text analysis with AI-powered semantic and sentiment insights</p>
+    </div>
+    <div class="content-area">
+      <div class="alert alert-info"><i class="fas fa-info-circle"></i> <strong>How to use:</strong> Enter Tamil text and click "Analyze Text" to get semantic and sentiment analysis. English input is not allowed.</div>
+      <div class="analysis-container">
+        <div class="input-section">
+          <div class="section-header"><i class="fas fa-edit"></i> Text Input</div>
+          <div class="section-content">
+            <form id="analysisForm">
+              <div class="mb-3">
+                <label for="inputText" class="form-label">Enter Tamil Text:</label>
+                <textarea class="form-control tamil-text" id="inputText" rows="8" placeholder="உங்கள் தமிழ் உரையை இங்கே தட்டச்சு செய்யவும்..." required></textarea>
+                <div class="form-text"><i class="fas fa-lightbulb"></i> Try: "வணக்கம் நண்பர்களே. எப்படி இருக்கீங்க?"</div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="analyzeBtn"><i class="fas fa-search"></i> Analyze Text</button>
+            </form>
+          </div>
+        </div>
+        <div class="results-section">
+          <div class="section-header"><i class="fas fa-chart-bar"></i> Analysis Results</div>
+          <div class="section-content">
+            <div id="loadingResults" class="loading">
+              <div class="spinner"></div>
+              <p>Analyzing your text...</p>
+            </div>
+            <div id="analysisResults" class="empty-state">
+              <i class="fas fa-chart-line"></i>
+              <h5>Ready for Analysis</h5>
+              <p>Enter Tamil text and click analyze to see detailed semantic and sentiment results.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="powered-by">
+      <p>Powered by <strong>Gemini AI</strong> • Advanced Tamil NLP • <strong>v2.0</strong></p>
+    </div>
+  </div>
+
+  <div id="statusIndicator" class="status-indicator"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let isAnalyzing = false;
+    const form = document.getElementById('analysisForm');
+    const inputText = document.getElementById('inputText');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loadingResults = document.getElementById('loadingResults');
+    const analysisResults = document.getElementById('analysisResults');
+    const statusIndicator = document.getElementById('statusIndicator');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (isAnalyzing) return;
+      const text = inputText.value.trim();
+      if (!text) { showStatus('Please enter Tamil text.', 'error'); return; }
+      await performAnalysis(text);
+    });
+
+    async function performAnalysis(text){
+      isAnalyzing = true; updateUI(true);
+      try {
+        const res = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+        displayResults(data);
+        showStatus('Analysis completed successfully!', 'success');
+      } catch (err){
+        console.error('Analysis error:', err);
+        showStatus('Analysis failed. Ensure text is Tamil only.', 'error');
+        displayError();
+      } finally { isAnalyzing = false; updateUI(false); }
+    }
+
+    function updateUI(analyzing){
+      analyzeBtn.disabled = analyzing;
+      analyzeBtn.innerHTML = analyzing ? '<i class="fas fa-spinner fa-spin"></i> Analyzing...' : '<i class="fas fa-search"></i> Analyze Text';
+      loadingResults.classList.toggle('show', analyzing);
+      analysisResults.style.display = analyzing ? 'none' : 'block';
+    }
+
+    function displayResults(data){
+      const semantic = data.semantic_analysis || {}; 
+      const sentiment = data.sentiment_analysis || {};
+      analysisResults.innerHTML = `
+        <div class="analysis-result">
+          <h6><i class="fas fa-brain"></i> Semantic Analysis</h6>
+          <p><strong>Language:</strong> ${semantic.language_detected || 'Unknown'}</p>
+          <p><strong>Word Count:</strong> ${semantic.word_count || 0}</p>
+          <p><strong>Complexity:</strong> ${semantic.text_complexity || 'Unknown'}</p>
+          ${semantic.meaning ? `<p><strong>Meaning:</strong> <span class="tamil-text">${semantic.meaning}</span></p>` : ''}
+        </div>
+        <div class="analysis-result">
+          <h6><i class="fas fa-heart"></i> Sentiment Analysis</h6>
+          <p><strong>Overall Sentiment:</strong> <span class="badge bg-${getSentimentColor(sentiment.overall_sentiment)}">${sentiment.overall_sentiment || 'neutral'}</span></p>
+          <p><strong>Confidence:</strong> ${Math.round((sentiment.confidence || 0) * 100)}%</p>
+          ${sentiment.explanation ? `<p><strong>Explanation:</strong> <span class="tamil-text">${sentiment.explanation}</span></p>` : ''}
+        </div>
+        ${data.enhanced_analysis ? '<div class="alert alert-success"><i class="fas fa-robot"></i> Enhanced with AI Analysis</div>' : ''}
+      `;
+    }
+
+    function displayError(){
+      analysisResults.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle text-danger"></i>
+          <h5>Analysis Failed</h5>
+          <p>Please try again with different text or check your connection.</p>
+        </div>
+      `;
+    }
+
+    function getSentimentColor(s){ return s==='positive' ? 'success' : s==='negative' ? 'danger' : 'secondary'; }
+
+    document.addEventListener('DOMContentLoaded', ()=>{ console.log('Tamil Analyzer UI ready'); });
+  </script>
+</body>
+</html>
