@@ -19,7 +19,7 @@ class GeminiCulturalAnalyzer:
     
     def __init__(self):
         self.api_key = Config.GEMINI_API_KEY
-        self.model_name = 'gemini-2.0-flash-exp'
+        self.model_name = Config.GEMINI_MODEL
         self.temperature = Config.GEMINI_TEMPERATURE
         self.max_tokens = Config.GEMINI_MAX_TOKENS
         self.base_url = 'https://generativelanguage.googleapis.com/v1beta/models'

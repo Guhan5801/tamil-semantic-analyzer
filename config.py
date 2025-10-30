@@ -9,7 +9,7 @@ class Config:
     
     # Gemini API Configuration
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyDToXd7MR-Vir-ILIYKQ4lmTdKlJH5GAkY')  # Your Gemini API key
-    GEMINI_MODEL = 'gemini-2.5-flash'  # Updated to working model
+    GEMINI_MODEL = 'gemini-1.5-flash'  # Stable model for production
     GEMINI_TEMPERATURE = 0.3  # Lower for more consistent cultural analysis
     GEMINI_MAX_TOKENS = 2048
     
