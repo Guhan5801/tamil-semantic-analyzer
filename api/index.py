@@ -80,6 +80,43 @@ def health():
     })
 
 
+@app.route('/api/debug')
+def debug():
+    """Debug endpoint to check configuration"""
+    try:
+        from config import Config
+        
+        debug_info = {
+            'config': {
+                'GEMINI_API_KEY_set': bool(Config.GEMINI_API_KEY and Config.GEMINI_API_KEY != 'your_gemini_api_key_here'),
+                'GEMINI_API_KEY_length': len(Config.GEMINI_API_KEY) if Config.GEMINI_API_KEY else 0,
+                'GEMINI_MODEL': Config.GEMINI_MODEL,
+                'ENABLE_GEMINI_ENHANCEMENT': Config.ENABLE_GEMINI_ENHANCEMENT,
+                'is_gemini_available': Config.is_gemini_available()
+            },
+            'analyzer': {
+                'exists': semantic_analyzer is not None,
+                'gemini_enabled': semantic_analyzer.gemini_enabled if semantic_analyzer else None,
+                'gemini_analyzer_exists': semantic_analyzer.gemini_analyzer is not None if semantic_analyzer else None
+            },
+            'environment': {
+                'VERCEL_ENV': os.getenv('VERCEL_ENV'),
+                'VERCEL_GIT_COMMIT_SHA': os.getenv('VERCEL_GIT_COMMIT_SHA'),
+                'FLASK_ENV': os.getenv('FLASK_ENV'),
+                'python_version': sys.version
+            },
+            'imports': {
+                'semantic_sentiment_analyzer_imported': 'semantic_sentiment_analyzer' in sys.modules,
+                'gemini_integration_imported': 'gemini_integration' in sys.modules,
+                'requests_available': 'requests' in sys.modules
+            }
+        }
+        
+        return jsonify(debug_info)
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': str(e.__traceback__)}), 500
+
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
