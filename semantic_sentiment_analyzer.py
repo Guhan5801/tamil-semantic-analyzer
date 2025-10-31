@@ -101,7 +101,10 @@ class SemanticSentimentAnalyzer:
         if self.gemini_enabled and self.gemini_analyzer:
             logger.info("Enhancing with conversational Gemini analysis...")
             try:
+                logger.info(f"Calling Gemini API for text: {text[:50]}...")
                 enhanced_analysis = self._get_gemini_semantic_sentiment(text)
+                logger.info(f"Gemini returned: {bool(enhanced_analysis)}, has semantic: {bool(enhanced_analysis.get('semantic') if enhanced_analysis else False)}")
+                
                 if enhanced_analysis and enhanced_analysis.get('semantic'):
                     # COMPLETELY REPLACE semantic analysis with Gemini results
                     # Keep only word counts from basic analysis
@@ -122,7 +125,8 @@ class SemanticSentimentAnalyzer:
                     analysis_result['enhanced_analysis'] = True
                     logger.info("✅ Conversational Gemini enhancement completed")
                 else:
-                    logger.warning("⚠️ Gemini returned empty result, using basic analysis")
+                    logger.warning(f"⚠️ Gemini returned empty result: enhanced_analysis={enhanced_analysis}")
+                    logger.warning("⚠️ Using basic analysis fallback")
             except Exception as e:
                 logger.error(f"❌ Gemini enhancement failed: {str(e)}")
                 import traceback
