@@ -1,95 +1,80 @@
 """
 Gemini integration for enhanced cultural context analysis
-Uses an external generative model to provide cultural explanations
+Uses Google's official GenAI SDK for reliable API access
 """
 
 import logging
 import time
 import json
-import requests
+import re
 from typing import Dict, Any, List, Optional
 from config import Config
+
+# Import official Google GenAI SDK
+try:
+    from google import genai
+    SDK_AVAILABLE = True
+except ImportError:
+    SDK_AVAILABLE = False
+    logging.warning("⚠️ google-genai SDK not available, will use fallback")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiCulturalAnalyzer:
-    """Enhanced cultural analysis using an external model"""
+    """Enhanced cultural analysis using Google's official GenAI SDK"""
     
     def __init__(self):
         self.api_key = Config.GEMINI_API_KEY
         self.model_name = Config.GEMINI_MODEL
         self.temperature = Config.GEMINI_TEMPERATURE
         self.max_tokens = Config.GEMINI_MAX_TOKENS
-        self.base_url = 'https://generativelanguage.googleapis.com/v1/models'
+        self.client = None
+        self.is_available = False
         
-        # Configure Gemini API
-        if self.api_key and self.api_key != 'your_gemini_api_key_here':
+        # Initialize using official Google GenAI SDK
+        if SDK_AVAILABLE and self.api_key and self.api_key != 'your_gemini_api_key_here':
             try:
-                # Test API availability with a simple request
+                logger.info(f"Initializing Gemini client with API key: ***{self.api_key[-10:]}")
+                self.client = genai.Client(api_key=self.api_key)
                 self.is_available = True
-                logger.info("✅ Cultural Analyzer initialized")
+                logger.info(f"✅ Gemini client initialized successfully with model: {self.model_name}")
             except Exception as e:
-                logger.error(f"❌ Failed to initialize Gemini model: {str(e)}")
+                logger.error(f"❌ Failed to initialize Gemini client: {str(e)}")
                 self.is_available = False
         else:
-            self.is_available = False
-            logger.warning("⚠️ Enhanced NLP API key not configured - advanced analysis disabled")
+            if not SDK_AVAILABLE:
+                logger.warning("⚠️ google-genai SDK not installed")
+            else:
+                logger.warning("⚠️ Gemini API key not configured - advanced analysis disabled")
     
     def _make_request(self, prompt: str) -> Optional[str]:
-        """Make HTTP request to Gemini API"""
-        if not self.is_available:
-            logger.warning("_make_request called but is_available=False")
+        """Make request using official Google GenAI SDK"""
+        if not self.is_available or not self.client:
+            logger.warning("_make_request called but client not available")
             return None
             
         try:
-            url = f"{self.base_url}/{self.model_name}:generateContent?key={self.api_key}"
-            logger.info(f"Making Gemini API request to: {self.base_url}/{self.model_name}")
+            logger.info(f"🔄 Calling Gemini API with model: {self.model_name}")
             
-            payload = {
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": self.temperature,
-                    "maxOutputTokens": self.max_tokens
-                }
-            }
+            # Use official SDK method
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             
-            logger.info(f"Sending request with timeout=60s...")
-            response = requests.post(url, json=payload, timeout=60)
-            logger.info(f"Received response with status: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                logger.info(f"Response JSON keys: {list(data.keys())}")
-                
-                if 'candidates' in data and len(data['candidates']) > 0:
-                    content = data['candidates'][0]['content']['parts'][0]['text']
-                    logger.info(f"✅ Successfully extracted content ({len(content)} chars)")
-                    return content.strip()
-                else:
-                    logger.error(f"No candidates in response: {data}")
-                    return None
-            elif response.status_code == 503:
-                logger.warning("Gemini API is temporarily overloaded - will provide fallback analysis")
+            # Check if we got a response
+            if not response or not response.text:
+                logger.error("❌ Gemini returned empty response")
                 return None
-            else:
-                logger.error(f"Gemini API error: {response.status_code}")
-                logger.error(f"Response text: {response.text[:500]}")
-                return None
+            
+            logger.info(f"✅ Gemini response received: {len(response.text)} characters")
+            return response.text.strip()
                 
-        except requests.exceptions.Timeout:
-            logger.error("❌ Gemini request timed out after 60 seconds")
-            return None
-        except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Gemini request exception: {str(e)}")
-            return None
         except Exception as e:
-            logger.error(f"❌ Unexpected error in Gemini request: {str(e)}")
+            logger.error(f"❌ Gemini API call failed: {str(e)}")
             import traceback
-            logger.error(traceback.format_exc())
             return None
     
     def enhance_cultural_context(self, extracted_text: str, 
