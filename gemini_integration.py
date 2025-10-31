@@ -1,6 +1,6 @@
 """
 Gemini integration for enhanced cultural context analysis
-Uses Google's official GenAI SDK for reliable API access
+Uses Google's official GenAI SDK with HTTP fallback
 """
 
 import logging
@@ -9,14 +9,15 @@ import json
 import re
 from typing import Dict, Any, List, Optional
 from config import Config
+import requests
 
 # Import official Google GenAI SDK
 try:
     from google import genai
     SDK_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     SDK_AVAILABLE = False
-    logging.warning("⚠️ google-genai SDK not available, will use fallback")
+    logging.warning(f"⚠️ google-genai SDK not available: {e}, will use HTTP fallback")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -45,36 +46,71 @@ class GeminiCulturalAnalyzer:
                 self.is_available = False
         else:
             if not SDK_AVAILABLE:
-                logger.warning("⚠️ google-genai SDK not installed")
+                logger.warning("⚠️ google-genai SDK not installed, will use HTTP fallback")
             else:
                 logger.warning("⚠️ Gemini API key not configured - advanced analysis disabled")
     
     def _make_request(self, prompt: str) -> Optional[str]:
-        """Make request using official Google GenAI SDK"""
-        if not self.is_available or not self.client:
-            logger.warning("_make_request called but client not available")
+        """Make request using SDK or HTTP fallback"""
+        if not self.is_available:
+            logger.warning("_make_request called but is_available=False")
             return None
-            
+        
+        # Try SDK first
+        if self.client and SDK_AVAILABLE:
+            try:
+                logger.info(f"🔄 Using SDK: Calling Gemini API with model: {self.model_name}")
+                
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
+                
+                if not response or not response.text:
+                    logger.error("❌ SDK: Gemini returned empty response")
+                    return None
+                
+                logger.info(f"✅ SDK: Gemini response received: {len(response.text)} characters")
+                return response.text.strip()
+                    
+            except Exception as e:
+                logger.error(f"❌ SDK failed: {str(e)}, trying HTTP fallback")
+        
+        # HTTP fallback
         try:
-            logger.info(f"🔄 Calling Gemini API with model: {self.model_name}")
+            logger.info(f"🔄 Using HTTP fallback for Gemini API")
+            url = f"https://generativelanguage.googleapis.com/v1/models/{self.model_name}:generateContent?key={self.api_key}"
             
-            # Use official SDK method
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
-            )
+            payload = {
+                "contents": [{
+                    "parts": [{"text": prompt}]
+                }],
+                "generationConfig": {
+                    "temperature": self.temperature,
+                    "maxOutputTokens": self.max_tokens
+                }
+            }
             
-            # Check if we got a response
-            if not response or not response.text:
-                logger.error("❌ Gemini returned empty response")
+            response = requests.post(url, json=payload, timeout=60)
+            logger.info(f"HTTP response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'candidates' in data and len(data['candidates']) > 0:
+                    content = data['candidates'][0]['content']['parts'][0]['text']
+                    logger.info(f"✅ HTTP: Gemini response received: {len(content)} characters")
+                    return content.strip()
+                else:
+                    logger.error(f"No candidates in HTTP response")
+                    return None
+            else:
+                logger.error(f"HTTP error: {response.status_code} - {response.text[:200]}")
                 return None
-            
-            logger.info(f"✅ Gemini response received: {len(response.text)} characters")
-            return response.text.strip()
                 
         except Exception as e:
-            logger.error(f"❌ Gemini API call failed: {str(e)}")
+            logger.error(f"❌ HTTP fallback also failed: {str(e)}")
             import traceback
+            logger.error(traceback.format_exc())
             return None
     
     def enhance_cultural_context(self, extracted_text: str, 

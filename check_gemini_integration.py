@@ -37,7 +37,7 @@ print("=" * 80)
 try:
     from config import Config
     print(f"✅ File: {files_to_check['Config']}")
-    print(f"   • GEMINI_API_KEY present: {bool(Config.GEMINI_API_KEY and Config.GEMINI_API_KEY != 'your_gemini_api_key_here')}")
+    print(f"   • GEMINI_API_KEY present: {bool(Config.GEMINI_API_KEY and Config.GEMINI_API_KEY != 'AIzaSyDgnL-LtqN6Nd9jKfrKR7xrpoPatK0O7HU')}")
     print(f"   • GEMINI_API_KEY value: {'***' + Config.GEMINI_API_KEY[-10:] if Config.GEMINI_API_KEY else 'NOT SET'}")
     print(f"   • GEMINI_MODEL: {Config.GEMINI_MODEL}")
     print(f"   • ENABLE_GEMINI_ENHANCEMENT: {Config.ENABLE_GEMINI_ENHANCEMENT}")
