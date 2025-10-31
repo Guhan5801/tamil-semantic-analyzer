@@ -32,7 +32,7 @@ try:
     gemini = GeminiCulturalAnalyzer()
     print(f"   • is_available: {gemini.is_available}")
     print(f"   • model_name: {gemini.model_name}")
-    print(f"   • base_url: {gemini.base_url}")
+    print(f"   • using_sdk: {gemini.client is not None}")
 except Exception as e:
     print(f"   ❌ Gemini import/init failed: {e}")
     import traceback

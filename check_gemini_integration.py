@@ -58,7 +58,7 @@ try:
     print(f"   • Instance created: ✅")
     print(f"   • is_available: {gemini.is_available}")
     print(f"   • model_name: {gemini.model_name}")
-    print(f"   • base_url: {gemini.base_url}")
+    print(f"   • using_sdk: {gemini.client is not None}")
     print(f"   • api_key set: {bool(gemini.api_key)}")
     
     # Test connection
