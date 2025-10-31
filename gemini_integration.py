@@ -40,10 +40,12 @@ class GeminiCulturalAnalyzer:
     def _make_request(self, prompt: str) -> Optional[str]:
         """Make HTTP request to Gemini API"""
         if not self.is_available:
+            logger.warning("_make_request called but is_available=False")
             return None
             
         try:
             url = f"{self.base_url}/{self.model_name}:generateContent?key={self.api_key}"
+            logger.info(f"Making Gemini API request to: {self.base_url}/{self.model_name}")
             
             payload = {
                 "contents": [{
@@ -55,23 +57,40 @@ class GeminiCulturalAnalyzer:
                 }
             }
             
-            response = requests.post(url, json=payload, timeout=30)
+            logger.info(f"Sending request with timeout=60s...")
+            response = requests.post(url, json=payload, timeout=60)
+            logger.info(f"Received response with status: {response.status_code}")
             
             if response.status_code == 200:
                 data = response.json()
+                logger.info(f"Response JSON keys: {list(data.keys())}")
+                
                 if 'candidates' in data and len(data['candidates']) > 0:
                     content = data['candidates'][0]['content']['parts'][0]['text']
+                    logger.info(f"✅ Successfully extracted content ({len(content)} chars)")
                     return content.strip()
+                else:
+                    logger.error(f"No candidates in response: {data}")
+                    return None
             elif response.status_code == 503:
                 logger.warning("Gemini API is temporarily overloaded - will provide fallback analysis")
                 return None
             else:
-                logger.error(f"Gemini API error: {response.status_code} - {response.text}")
+                logger.error(f"Gemini API error: {response.status_code}")
+                logger.error(f"Response text: {response.text[:500]}")
+                return None
                 
+        except requests.exceptions.Timeout:
+            logger.error("❌ Gemini request timed out after 60 seconds")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ Gemini request exception: {str(e)}")
+            return None
         except Exception as e:
-            logger.warning(f"Gemini request failed (will use fallback): {str(e)}")
-            
-        return None
+            logger.error(f"❌ Unexpected error in Gemini request: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
     
     def enhance_cultural_context(self, extracted_text: str, 
                                 basic_analysis: Dict[str, Any]) -> Dict[str, Any]:
