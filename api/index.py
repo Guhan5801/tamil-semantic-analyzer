@@ -120,6 +120,51 @@ def debug():
         return jsonify({'error': str(e), 'traceback': str(e.__traceback__)}), 500
 
 
+@app.route('/api/test-gemini')
+def test_gemini():
+    """Test Gemini API directly"""
+    try:
+        if not semantic_analyzer:
+            return jsonify({'status': 'error', 'error': 'Analyzer not available'}), 503
+        
+        test_text = "அகர முதல எழுத்தெல்லாம் ஆதி பகவன் முதற்றே உலகு"
+        
+        result = {
+            'gemini_enabled': semantic_analyzer.gemini_enabled,
+            'gemini_analyzer_exists': semantic_analyzer.gemini_analyzer is not None,
+            'test_input': test_text
+        }
+        
+        if semantic_analyzer.gemini_analyzer:
+            result['gemini_available'] = semantic_analyzer.gemini_analyzer.is_available
+            
+            try:
+                logger.info("Testing Gemini API call...")
+                gemini_response = semantic_analyzer.gemini_analyzer.get_conversational_meaning(test_text)
+                result['gemini_response_received'] = bool(gemini_response)
+                result['gemini_response_has_text'] = bool(gemini_response and gemini_response.get('text'))
+                
+                if gemini_response and gemini_response.get('text'):
+                    response_text = gemini_response.get('text', '')
+                    result['response_length'] = len(response_text)
+                    result['response_preview'] = response_text[:500] + '...' if len(response_text) > 500 else response_text
+                    result['has_porul'] = 'பொருள்:' in response_text
+                    result['has_summary'] = 'சுருக்கமாக:' in response_text
+                else:
+                    result['error'] = 'Gemini returned empty response'
+            except Exception as e:
+                result['gemini_call_error'] = str(e)
+                import traceback
+                result['gemini_traceback'] = traceback.format_exc()
+        else:
+            result['error'] = 'Gemini analyzer not initialized'
+        
+        return jsonify(result)
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
