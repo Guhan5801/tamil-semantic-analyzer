@@ -144,9 +144,15 @@ def analyze():
         logger.info(f"Analyze request: {len(text)} chars")
         result = semantic_analyzer.analyze_semantic_sentiment(text)
         
-        # Log enhancement status
+        # Log enhancement status and meaning details
+        semantic_data = result.get('semantic_analysis', {})
+        meaning_length = len(semantic_data.get('meaning', ''))
+        has_porul = 'பொருள்:' in semantic_data.get('meaning', '')
+        has_summary = 'சுருக்கமாக:' in semantic_data.get('meaning', '')
+        
         logger.info(f"Analysis complete: enhanced={result.get('enhanced_analysis', False)}, " +
-                   f"gemini_error={result.get('gemini_error', 'none')}")
+                   f"gemini_error={result.get('gemini_error', 'none')}, " +
+                   f"meaning_length={meaning_length}, has_porul={has_porul}, has_summary={has_summary}")
 
         # Do not return any english_meaning key and ensure Tamil-only fields
         semantic_out = dict(result.get('semantic_analysis', {}) or {})
