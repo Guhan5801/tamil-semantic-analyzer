@@ -516,7 +516,6 @@
                     <p><strong>Confidence:</strong> ${Math.round((sentiment.confidence || 0) * 100)}%</p>
                     ${sentiment.explanation ? `<p><strong>Explanation:</strong> <span class="tamil-text">${sentiment.explanation}</span></p>` : ''}
                 </div>
-                ${data.enhanced_analysis ? '<div class="alert alert-success"><i class="fas fa-robot"></i> Enhanced with AI Analysis</div>' : ''}
             `;
 
             // Display meanings
