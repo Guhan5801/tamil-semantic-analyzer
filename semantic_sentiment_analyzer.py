@@ -386,8 +386,7 @@ class SemanticSentimentAnalyzer:
                         },
                         'sentiment': {
                             'overall_sentiment': parsed_response.get('sentiment', 'neutral'),
-                            'confidence': 0.9,
-                            'explanation': 'Gemini AI மூலம் பகுப்பாய்வு செய்யப்பட்டது'
+                            'confidence': 0.9
                         }
                     }
                     return result
