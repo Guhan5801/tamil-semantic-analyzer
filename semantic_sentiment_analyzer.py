@@ -358,7 +358,7 @@ class SemanticSentimentAnalyzer:
                     clean_response = clean_response.strip()
                     parsed_response = json.loads(clean_response)
                     
-                    # Build detailed meaning with literary source information
+                    # Build concise meaning - just பொருள் and சுருக்கமாக
                     detailed_meaning = parsed_response.get('tamil_meaning', '')
                     
                     # Add source book information if available
@@ -373,41 +373,15 @@ class SemanticSentimentAnalyzer:
                     if source_parts:
                         detailed_meaning = " | ".join(source_parts) + "\n\n" + detailed_meaning
                     
-                    # Add line-by-line if available (handle different data types)
-                    if parsed_response.get('line_by_line'):
-                        line_by_line = parsed_response.get('line_by_line')
-                        if isinstance(line_by_line, str):
-                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + line_by_line
-                        elif isinstance(line_by_line, list):
-                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + json.dumps(line_by_line, ensure_ascii=False, indent=2)
-                        elif isinstance(line_by_line, dict):
-                            detailed_meaning += "\n\nவரிக்கு வரி விளக்கம்:\n" + json.dumps(line_by_line, ensure_ascii=False, indent=2)
-                    
-                    # Add explanation if available
-                    if parsed_response.get('explanation'):
-                        explanation = parsed_response.get('explanation')
-                        if isinstance(explanation, str):
-                            detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + explanation
-                        else:
-                            detailed_meaning += "\n\nவிரிவான விளக்கம்:\n" + json.dumps(explanation, ensure_ascii=False, indent=2)
-                    
-                    # Add theme if available
-                    if parsed_response.get('theme'):
-                        theme = parsed_response.get('theme')
-                        if isinstance(theme, str):
-                            detailed_meaning += "\n\nகருத்து: " + theme
-                        else:
-                            detailed_meaning += "\n\nகருத்து: " + json.dumps(theme, ensure_ascii=False, indent=2)
-                    
-                    # Convert to expected format (Tamil-only)
+                    # Return concise format with separated semantic and sentiment
                     result = {
                         'semantic': {
                             'meaning': detailed_meaning,
                             'source_book': parsed_response.get('source_book', ''),
                             'chapter_section': parsed_response.get('chapter_section', ''),
                             'verse_number': parsed_response.get('verse_number', ''),
-                            'explanation': parsed_response.get('explanation', ''),
                             'theme': parsed_response.get('theme', ''),
+                            'commentary_reference': parsed_response.get('commentary_reference', ''),
                             'themes': []
                         },
                         'sentiment': {
