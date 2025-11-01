@@ -89,10 +89,20 @@ def debug():
     try:
         from config import Config
         
+        # Check environment variable
+        env_key = os.getenv('GEMINI_API_KEY', '')
+        
         debug_info = {
+            'environment': {
+                'GEMINI_API_KEY_in_env': bool(env_key),
+                'GEMINI_API_KEY_env_length': len(env_key) if env_key else 0,
+                'env_key_valid': len(env_key) == 39 if env_key else False,
+                'using_hardcoded_key': len(env_key) != 39 or not env_key
+            },
             'config': {
                 'GEMINI_API_KEY_set': bool(Config.GEMINI_API_KEY and Config.GEMINI_API_KEY != 'your_gemini_api_key_here'),
                 'GEMINI_API_KEY_length': len(Config.GEMINI_API_KEY) if Config.GEMINI_API_KEY else 0,
+                'GEMINI_API_KEY_last10': f"***{Config.GEMINI_API_KEY[-10:]}" if Config.GEMINI_API_KEY else '',
                 'GEMINI_MODEL': Config.GEMINI_MODEL,
                 'ENABLE_GEMINI_ENHANCEMENT': Config.ENABLE_GEMINI_ENHANCEMENT,
                 'is_gemini_available': Config.is_gemini_available()
