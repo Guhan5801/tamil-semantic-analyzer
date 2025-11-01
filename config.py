@@ -8,7 +8,18 @@ class Config:
     """Configuration class for managing API keys and system settings"""
     
     # Gemini API Configuration
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyDToXd7MR-Vir-ILIYKQ4lmTdKlJH5GAkY')  # Your Gemini API key
+    # Get from environment, but validate it's the correct length (39 chars)
+    _env_key = os.getenv('GEMINI_API_KEY', '')
+    _correct_key = 'AIzaSyDToXd7MR-Vir-ILIYKQ4lmTdKlJH5GAkY'
+    
+    # Use environment key only if it's valid (39 characters), otherwise use hardcoded
+    if _env_key and len(_env_key) == 39:
+        GEMINI_API_KEY = _env_key
+    else:
+        GEMINI_API_KEY = _correct_key
+        if _env_key and len(_env_key) != 39:
+            print(f"⚠️ WARNING: Invalid GEMINI_API_KEY in environment (length: {len(_env_key)}). Using hardcoded key.")
+    
     GEMINI_MODEL = 'gemini-2.5-flash'  # Stable model for production
     GEMINI_TEMPERATURE = 0.3  # Lower for more consistent cultural analysis
     GEMINI_MAX_TOKENS = 2048
