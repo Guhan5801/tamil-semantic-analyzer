@@ -385,8 +385,7 @@ class SemanticSentimentAnalyzer:
                             'themes': []
                         },
                         'sentiment': {
-                            'overall_sentiment': parsed_response.get('sentiment', 'neutral'),
-                            'confidence': 0.9
+                            'overall_sentiment': parsed_response.get('sentiment', 'neutral')
                         }
                     }
                     return result
@@ -403,7 +402,6 @@ class SemanticSentimentAnalyzer:
                         },
                         'sentiment': {
                             'overall_sentiment': 'neutral',
-                            'confidence': 0.7,
                             'explanation': 'அடிப்படை பகுப்பாய்வு'
                         }
                     }
