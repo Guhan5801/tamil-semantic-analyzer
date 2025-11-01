@@ -368,42 +368,42 @@
                     </div>
                 </div>
 
-                <!-- Results Section -->
+                <!-- Semantic Analysis (தமிழ் பொருள்) Section -->
                 <div class="results-section">
                     <div class="section-header">
-                        <i class="fas fa-chart-bar section-icon"></i>
-                        Analysis Results
-                    </div>
-                    <div class="section-content">
-                        <div id="loadingResults" class="loading">
-                            <div class="spinner"></div>
-                            <p>Analyzing your text...</p>
-                        </div>
-                        
-                        <div id="analysisResults" class="empty-state">
-                            <i class="fas fa-chart-line"></i>
-                            <h5>Ready for Analysis</h5>
-                            <p>Enter Tamil text and click analyze to see detailed semantic and sentiment results.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Meaning Section -->
-                <div class="meaning-section">
-                    <div class="section-header">
                         <i class="fas fa-language section-icon"></i>
-                        தமிழ் விளக்கம்
+                        தமிழ் பொருள் (Semantic Analysis)
                     </div>
                     <div class="section-content">
                         <div id="loadingMeaning" class="loading">
                             <div class="spinner"></div>
-                            <p>விளக்கம் உருவாக்கப்படுகிறது...</p>
+                            <p>பொருள் உருவாக்கப்படுகிறது...</p>
                         </div>
                         
                         <div id="meaningResults" class="empty-state">
                             <i class="fas fa-comments"></i>
                             <h5>தமிழ் பொருள்</h5>
-                            <p>பகுப்பாய்வு முடிந்தவுடன் தமிழில் தெளிவான விளக்கம் இங்கே காட்டப்படும்.</p>
+                            <p>பகுப்பாய்வு முடிந்தவுடன் தமிழில் தெளிவான பொருள் இங்கே காட்டப்படும்.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sentiment Analysis Section -->
+                <div class="meaning-section">
+                    <div class="section-header">
+                        <i class="fas fa-heart section-icon"></i>
+                        Sentiment Analysis
+                    </div>
+                    <div class="section-content">
+                        <div id="loadingSentiment" class="loading">
+                            <div class="spinner"></div>
+                            <p>உணர்வு பகுப்பாய்வு செய்யப்படுகிறது...</p>
+                        </div>
+                        
+                        <div id="sentimentResults" class="empty-state">
+                            <i class="fas fa-chart-line"></i>
+                            <h5>Sentiment Analysis</h5>
+                            <p>உரையின் உணர்வு பகுப்பாய்வு இங்கே காட்டப்படும்.</p>
                         </div>
                     </div>
                 </div>
@@ -424,10 +424,10 @@
         const form = document.getElementById('analysisForm');
         const inputText = document.getElementById('inputText');
         const analyzeBtn = document.getElementById('analyzeBtn');
-        const loadingResults = document.getElementById('loadingResults');
         const loadingMeaning = document.getElementById('loadingMeaning');
-        const analysisResults = document.getElementById('analysisResults');
+        const loadingSentiment = document.getElementById('loadingSentiment');
         const meaningResults = document.getElementById('meaningResults');
+        const sentimentResults = document.getElementById('sentimentResults');
         const statusIndicator = document.getElementById('statusIndicator');
 
         // Event listeners
@@ -485,70 +485,77 @@
                 '<i class="fas fa-search"></i> Analyze Text';
 
             if (analyzing) {
-                loadingResults.classList.add('show');
                 loadingMeaning.classList.add('show');
-                analysisResults.style.display = 'none';
+                loadingSentiment.classList.add('show');
                 meaningResults.style.display = 'none';
+                sentimentResults.style.display = 'none';
             } else {
-                loadingResults.classList.remove('show');
                 loadingMeaning.classList.remove('show');
-                analysisResults.style.display = 'block';
+                loadingSentiment.classList.remove('show');
                 meaningResults.style.display = 'block';
+                sentimentResults.style.display = 'block';
             }
         }
 
         function displayResults(data) {
-            // Display semantic and sentiment analysis
+            // Display semantic analysis (தமிழ் பொருள்)
             const semantic = data.semantic_analysis || {};
-            const sentiment = data.sentiment_analysis || {};
-
-            analysisResults.innerHTML = `
-                <div class="analysis-result">
-                    <h6><i class="fas fa-brain"></i> Semantic Analysis</h6>
-                    <p><strong>Language:</strong> ${semantic.language_detected || 'Unknown'}</p>
-                    <p><strong>Word Count:</strong> ${semantic.word_count || 0}</p>
-                    <p><strong>Complexity:</strong> ${semantic.text_complexity || 'Unknown'}</p>
-                    ${semantic.meaning ? `<p><strong>Meaning:</strong> <span class="tamil-text">${semantic.meaning}</span></p>` : ''}
-                </div>
-                <div class="analysis-result">
-                    <h6><i class="fas fa-heart"></i> Sentiment Analysis</h6>
-                    <p><strong>Overall Sentiment:</strong> <span class="badge bg-${getSentimentColor(sentiment.overall_sentiment)}">${sentiment.overall_sentiment || 'neutral'}</span></p>
-                    <p><strong>Confidence:</strong> ${Math.round((sentiment.confidence || 0) * 100)}%</p>
-                    ${sentiment.explanation ? `<p><strong>Explanation:</strong> <span class="tamil-text">${sentiment.explanation}</span></p>` : ''}
+            const tamilMeaning = semantic.meaning || 'பொருள் கிடைக்கவில்லை';
+            
+            meaningResults.innerHTML = `
+                <div class="meaning-panel tamil">
+                    <div class="meaning-text tamil-text" style="white-space: pre-line; font-size: 1.1rem; line-height: 1.8;">${tamilMeaning}</div>
                 </div>
             `;
 
-            // Display meanings
-            updateSemanticMeaning(semantic);
-        }
-
-        function updateSemanticMeaning(semantic) {
-            const tamilMeaning = semantic.meaning || 'பொருள் கிடைக்கவில்லை';
-            meaningResults.innerHTML = `
-                <div class="meaning-panel tamil">
-                    <div class="meaning-title">
-                        <i class="fas fa-comment"></i> தமிழ் பொருள்
+            // Display sentiment analysis separately
+            const sentiment = data.sentiment_analysis || {};
+            const sentimentValue = sentiment.overall_sentiment || 'neutral';
+            const confidence = Math.round((sentiment.confidence || 0) * 100);
+            
+            sentimentResults.innerHTML = `
+                <div class="analysis-result" style="text-align: center;">
+                    <div style="margin: 2rem 0;">
+                        <i class="fas fa-${getSentimentIcon(sentimentValue)}" style="font-size: 3rem; color: ${getSentimentColorCode(sentimentValue)};"></i>
                     </div>
-                    <div class="meaning-text tamil-text">${tamilMeaning}</div>
+                    <h4><span class="badge bg-${getSentimentColor(sentimentValue)}" style="font-size: 1.2rem; padding: 0.5rem 1.5rem;">${sentimentValue.toUpperCase()}</span></h4>
+                    <p style="font-size: 1.1rem; margin-top: 1rem;"><strong>Confidence:</strong> ${confidence}%</p>
+                    ${sentiment.explanation ? `<p class="tamil-text" style="margin-top: 1rem; font-style: italic;">${sentiment.explanation}</p>` : ''}
                 </div>
             `;
         }
 
         function displayError() {
-            analysisResults.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle text-danger"></i>
-                    <h5>Analysis Failed</h5>
-                    <p>Please try again with different text or check your connection.</p>
-                </div>
-            `;
             meaningResults.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle text-danger"></i>
-                    <h5>Unable to Generate Meanings</h5>
-                    <p>Please try the analysis again.</p>
+                    <h5>பொருள் பெற இயலவில்லை</h5>
+                    <p>மீண்டும் முயற்சிக்கவும்.</p>
                 </div>
             `;
+            sentimentResults.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    <h5>Sentiment Analysis Failed</h5>
+                    <p>Please try again.</p>
+                </div>
+            `;
+        }
+
+        function getSentimentIcon(sentiment) {
+            switch (sentiment) {
+                case 'positive': return 'smile-beam';
+                case 'negative': return 'frown';
+                default: return 'meh';
+            }
+        }
+
+        function getSentimentColorCode(sentiment) {
+            switch (sentiment) {
+                case 'positive': return '#059669';
+                case 'negative': return '#dc2626';
+                default: return '#6c757d';
+            }
         }
 
         function getSentimentColor(sentiment) {
