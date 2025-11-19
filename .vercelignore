@@ -1,0 +1,26 @@
+# Model cache (too large for deployment)
+cache/
+
+# Test files
+test_*.py
+quick_*.py
+
+# Development files
+START_SERVER.bat
+start_server.py
+setup_models.py
+
+# Database backups
+database/*.backup*
+
+# Documentation
+docs/
+PRODUCTION_STATUS.py
+PROJECT_COMPLETE.md
+MULTI_BOOK_ARCHITECTURE.md
+README_PRODUCTION.md
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
